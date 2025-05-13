@@ -1,13 +1,21 @@
 <pre class='metadata'>
 Title: ODRL Policy Agreement Instantiation
 Shortname: ODRL Instantiation
-Level: 1
+Level: none
 Status: LD
-Editor: Ruben Dedecker, [IDLab - Ghent University](https://knows.idlab.ugent.be), ruben.dedecker@ugent.be
-Abstract: This document defines an approach for instnatitating ODRL policies based on incoming claims modeled as RDF.
-Markup Shorthands: markdown yes 
-Boilerplate: logo no, conformance no, index no
+Editor: Ruben Dedecker, Ghent University - imec http://idlab.ugent.be/, ruben.dedecker@ugent.be
+Editor: Beatriz Esteves, Ghent University - imec http://idlab.ugent.be/, beatriz.esteves@ugent.be
+Abstract: This document defines an approach for instantiating ODRL policies based on incoming claims modeled as RDF.
+Markup Shorthands: markdown yes, css no
+URL: https://w3id.org/force/policy-instantiation
+Previous Version: _ORCHESTRATOR_PREVIOUS_BUILD_FULL_LINK_
+Repository: https://github.com/SolidLabResearch/policy-instantiation-spec
+!License: <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA-4.0</a>
 </pre>
+
+<p boilerplate="copyright">
+  <!-- This document is made available under the CC-BY-SA-4.0 License. -->
+</p>
 
 <style>
 p[data-fill-with="logo"] {
