@@ -5,7 +5,7 @@ Level: none
 Status: LD
 Editor: Ruben Dedecker, Ghent University - imec http://idlab.ugent.be/, ruben.dedecker@ugent.be
 Editor: Beatriz Esteves, Ghent University - imec http://idlab.ugent.be/, beatriz.esteves@ugent.be
-Abstract: This document defines an approach for instantiating ODRL policies based on incoming claims modeled as RDF.
+Abstract: This document defines an approach for instantiating ODRL agreements based on incoming requests modeled as RDF.
 Markup Shorthands: markdown yes, css no
 URL: https://w3id.org/force/policy-instantiation
 Previous Version: _ORCHESTRATOR_PREVIOUS_BUILD_FULL_LINK_
@@ -61,12 +61,12 @@ table th.last {
 Introduction {#introduction}
 ============================
 Policy instantiation defines the process of creating an agreement based on:
-(i) a set of ODRL policies, (ii) an ODRL Request and and  
-(iii) additional information defined as the state of the world (SOTW)
-at the time of the evaluation.
-The resulting ODRL Agreement of the execution of the instantiation
-algorithm defines the contract defined by evaluating the ODRL request
-over the available policies with regards to the SOTW.
+(i) a set of ODRL policies, (ii) an ODRL Request, and  
+(iii) additional information defined as the state of the world (SotW)
+at the time of the instantiation.
+From the execution of the instantiation algorithm,
+an ODRL agreement is created  that reflects the matching of an ODRL request
+against the available policies and SotW.
 
 As the ODRL specification defines a generic policy language,
 with many extension points for actions, constraints, parties,
@@ -95,12 +95,26 @@ express the policy prohibiting drinking and driving at the same time,
 you can only enforce not drinking and not driving. Composite policies
 can only be modeled as constraints on atomic prohibitions.**
 
+Namespaces {#namespaces}
+=====================
+
+Commonly used namespace prefixes used in this specification:
+```turtle
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dpv:     <https://w3id.org/dpv#> .
+@prefix eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#> .
+@prefix ex:      <http://example.org/> .
+@prefix oac:     <https://w3id.org/oac#> .
+@prefix odrl:    <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+```
 
 Requirements {#requirements}
 ============================
 In this section, we iterate the requirements for the instantiation algorithm.
 
-The core ODRL Instantiation Algorithn MUST at least support the inclusion of 
+The core ODRL Instantiation Algorithm MUST at least support the inclusion of 
 all core ODRL elements as defined in the [ODRL Information Model](https://www.w3.org/TR/odrl-model/#infoModel).
 This includes the following classes:
 
@@ -135,7 +149,7 @@ For this reason, policies containing prohibition rules with more than one action
 
 
 
-## Input Validation
+## Input Validation ## {#input-validation}
 The first step is the validation of the input parameters.
 
 For (i), the request must be validated to be of type `odrl:Request`, 
@@ -153,7 +167,7 @@ but may be validated against a known shape to check for missing
 properties.
 
 
-## Converting to atomic policy composition
+## Converting to atomic policy composition ## {#policy-composition}
 
 Following [Rule Composition](https://www.w3.org/TR/odrl-model/#composition),
 we convert both (i) the ODRL Request parameter and (ii) the policies of the policy
@@ -178,7 +192,7 @@ of odrl:prohibitions with multiple actions is impossible.
 If this is not the case, this part of the algorithm needs to be revised!
 
 
-## Target Matching
+## Target Matching ## {#target-matching}
 
 The next step is remove all policy rules that are not relevant for the 
 request. As the requests are atomized in the step above, 
@@ -195,7 +209,9 @@ of a target defined by any of the policies in the input. It this were to be the 
 in place to decide if a subset of a policy target is defined as the request target.
 
 
-## Policy Evaluation (optional)
+## Policy Evaluation ## {#policy-evaluation}
+
+Note: This step is optional.
 
 As an optional step, the request can be validated against the policies and the SOTW to 
 check both the validity of the request and ensuring all required information for the
@@ -209,14 +225,14 @@ Note: when skipping policy evaluation, the execution flow might need to dynamica
 abort the instantiation algorithm or remove incomplete rules when trying to instantiate
 their properties and constraints with concrete values.
 
-## Instantiation algorithm
-Now that all pre-processing is done, the insantiation algorithm can be run:
+## Instantiation algorithm ## {#instantiation-algorithm}
+Now that all pre-processing is done, the instantiation algorithm can be run:
 
 
-### Creating the new agreement
+### Agreement creation ### {#agreement-creation}
 Create a new entity of type `odrl:Agreement` that serves as the basis of the instantiated agreement.
 
-### Add the references
+### Adding references ### {#adding-references}
 
 The instantiated agreement SHOULD reference the request and the policies that it is derived from.
 In privacy-sensitive cases, this step can be disregarded.
@@ -224,7 +240,7 @@ In privacy-sensitive cases, this step can be disregarded.
 This is done by adding the `dcterms:references` property to the instantiated agreement with the identifiers
 of the request and all policies that are relevant at this point of the algorithm execution.
 
-### Iterate over all combinations of rule type, rule action and rule target in the policy set
+### Iterating over rule types, actions and targets ### {#combinations}
 
 As discussed in [[#composition]], by not allowing prohibition rules 
 consisting of multiple actions, all resulting policy rules can differ 
@@ -242,19 +258,18 @@ rule action and rule target.
 Instantiate a new rule `R` for this combination of rule type, 
 action and target on the above agreement.
 
+### Instantiating parties ### {#instantiating-parties}
 
-### Instantiate assigner and assignee
-
-For the rule `R` defind in the step above, the `odrl:assigner` and `odrl:assignee` properties must be defined.
+For the rule `R` defined in the step above, the `odrl:assigner` and `odrl:assignee` properties must be defined.
 The `odrl:assignee` value MUST be defined on the ODRL Request parameter passed to the algorithm. 
-This value must be added to the insantiated rule from the previous step.
+This value must be added to the instantiated rule from the previous step.
 
-For the `odrl:assigner` value, this information may be defined in the SOTW parameter passed to the
+For the `odrl:assigner` value, this information may be defined in the SotW parameter passed to the
 algorithm, be hardcoded or retrieved out of bounds. It SHOULD be defined on the instantiated rule
 from the previous step.
 
 
-### Instantiate constraints
+### Instantiating constraints ### {#instantiating-constraints}
 
 Finally, for the set `S` of policy rules that share the combination of
 type, action and target to the instantiated rule `R`, 
@@ -264,7 +279,7 @@ Iterating over each unique constraint of each rule in `S`
 
 If an `odrl:subject` is found in the constraint, 
 the combined graphs of both the ODRL Request parameter 
-and the SOTW parameter MUST be evaluated using a `match` 
+and the SotW parameter MUST be evaluated using a `match` 
 function passing the constraint `odrl:subject`, `leftOperand`, 
 `operator` and `rightOperand` values.
 
@@ -277,17 +292,17 @@ The default interpretation of a constraint is that it is
 directly targeting the policy rule on which it is defined,
 and the `match` function must be called with the 
 **rule of the ODRL Request parameter**, and evaluated over 
-the combined knowledge graph of ODRL Request and SOTW parameters.
+the combined knowledge graph of ODRL Request and SotW parameters.
 
 Note: The `match` function is identical to how the ODRL Evaluation 
 engine processes these constraints. This should be aligned with Wout!
 
 
-#### The `match` function
+#### The `match` function #### {#match-function}
 
 The `match` function takes `subject`, `leftOperand`, `operator`
 and `rightOperand` parameters, as well as the `Request` and
-`SOTW`. 
+`SotW`. 
 
 (i) For each constraint, the subject is evaluated. 
 If the subject identifier is of the rule defined in the `Request`, 
@@ -314,12 +329,10 @@ Note: This `match` function is an extension point for the
 processing of custom constraints and mappings towards SPARQL filters.
 
 
-## Returning the instantiated agreement
+## Returning the instantiated agreement ## {#returning-agreement}
 
 After iterating over all rule combinations, 
 the instantiated agreement is returned by the algorithm.
-
-
 
 Examples {#examples}
 ====================
@@ -327,16 +340,10 @@ Examples {#examples}
 Issue: How should we define the legal basis requirement in the policy if we do not want to enforce a specific requirement?
 
 The ODRL Policy parameter
-```text/turtle
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-PREFIX ex: <http://example.org/>
-
+```turtle
 <http://example.org/alice-HCPX> a odrl:Set ;
     odrl:uid ex:alice-HCPX ;
-    dcterms:description "Alice allows her health data to be read by HCP X for bariatric care.";
+    dcterms:description "Alice allows her health data to be read by HCP X for bariatric care." ;
     odrl:permission <http://example.org/alice-HCPX-permission> .
 
 <http://example.org/alice-HCPX-permission> a odrl:Permission ;
@@ -354,19 +361,11 @@ PREFIX ex: <http://example.org/>
 ```
 
 The ODRL Request parameter
-```text/turtle
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
-PREFIX oac: <https://w3id.org/oac#>
-PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-PREFIX ex: <http://example.org/>
-
+```turtle
 <http://example.org/HCPX-request> a odrl:Request ;
     odrl:uid ex:HCPX-request ;
     odrl:profile oac: ;
-    dcterms:description "HCP X requests to read Alice's health data for bariatric care.";
+    dcterms:description "HCP X requests to read Alice's health data for bariatric care." ;
     odrl:permission <http://example.org/HCPX-request-permission> .
 
 <http://example.org/HCPX-request-permission> a odrl:Permission ;
@@ -389,24 +388,12 @@ PREFIX ex: <http://example.org/>
 ```
 
 The State of the World input parameter
-```text/turtle
-PREFIX ex: <http://example.org/>
-
-ex:systemTime odrl:eq "2025-02-19T17:54:24.531Z"^^xsd:dateTime.
+```turtle
+ex:systemTime odrl:eq "2025-02-19T17:54:24.531Z"^^xsd:dateTime .
 ```
 
-
-
 The Output Agreement
-```text/turtle
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX dpv: <https://w3id.org/dpv#>
-PREFIX eu-gdpr: <https://w3id.org/dpv/legal/eu/gdpr#>
-PREFIX odrl: <http://www.w3.org/ns/odrl/2/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-PREFIX ex: <http://example.org/>
-
+```turtle
 <http://example.org/Alice-HCPX-agreement> a odrl:Agreement ;
     odrl:uid ex:Alice-HCPX-agreement ;
     dcterms:references <http://example.org/alice-HCPX>, <http://example.org/HCPX-request> ;
@@ -431,12 +418,6 @@ PREFIX ex: <http://example.org/>
     odrl:operator odrl:eq ;
     odrl:rightOperand ex:bariatric-care .
 ```
-
-
-
-
-
-
 
 <pre class=biblio>
 {
